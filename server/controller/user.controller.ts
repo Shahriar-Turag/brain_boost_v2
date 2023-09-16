@@ -5,6 +5,7 @@ import { CatchAsyncError } from '../middleware/catchAsyncErrors';
 import jwt, { Secret } from 'jsonwebtoken';
 import ejs from 'ejs';
 import path from 'path';
+import sendMail from '../utils/sendMail';
 
 //register user
 interface IRegistrationBody {
@@ -42,12 +43,26 @@ export const registerUser = CatchAsyncError(
 				activationCode,
 			};
 			const html = await ejs.renderFile(
-				path.join(__dirname, '../mails/activation.mail.ejs'),
+				path.join(__dirname, '../mails/activation-mail.ejs'),
 				data
 			);
 
 			try {
-			} catch (err) {}
+				await sendMail({
+					email: user.email,
+					subject: 'Account Activation',
+					template: 'activation-mail.ejs',
+					data,
+				});
+
+				res.status(201).json({
+					success: true,
+					message: `An email has been sent to ${user.email}. Please check your email to activate your account`,
+					activationToken: activationToken.token,
+				});
+			} catch (err: any) {
+				return new ErrorHandler(err.message, 400);
+			}
 		} catch (err: any) {
 			return next(new ErrorHandler(err.message, 400));
 		}
@@ -72,3 +87,39 @@ export const createActivationToken = (user: any): IActivationToken => {
 
 	return { token, activationCode: activationCode.toString() };
 };
+
+//activate user
+interface IActivationRequest {
+	activation_token: string;
+	activation_code: string;
+}
+
+export const activateUser = CatchAsyncError(
+	async (req: Request, res: Response, next: NextFunction) => {
+		try {
+			const { activation_token, activation_code } =
+				req.body as IActivationRequest;
+
+			const newUser: { user: IUser; activationCode: string } = jwt.verify(
+				activation_token,
+				process.env.ACTIVATION_SECRET as string
+			) as { user: IUser; activationCode: string };
+
+			//check if the activation code is correct
+			if (newUser.activationCode !== activation_code) {
+				return next(new ErrorHandler('Incorrect activation code', 400));
+			}
+
+			const { name, email, password } = newUser.user;
+
+			//check if the user already exists
+			const existUser = await userModel.findOne({ email });
+
+			if (existUser) {
+				return next(new ErrorHandler('User already exists', 400));
+			}
+		} catch (err: any) {
+			return next(new ErrorHandler(err.message, 400));
+		}
+	}
+);

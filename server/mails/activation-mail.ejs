@@ -62,8 +62,8 @@
       background-color: #f6f6f6;
     }
 
-    /* Buttons */
-    .button {
+
+    h2 {
       display: inline-block;
       background-color: #0070f3;
       color: #ffffff;
@@ -85,17 +85,17 @@
     <div class="email-body">
       <p>Hi <%= user.name %>,</p>
       <p>Thanks for signing up for Brain Boost! We're excited to have you as an early user.</p>
-      <p>Before you can start using Brain Boost, you need to confirm your email address.</p>
-      <p>Click the button below to confirm your email address:</p>
+      <p>Before you can start using Brain Boost, Yoy need to active your account. Please use the following code to
+        activate your account</p>
       <h2>
-        <%= user.activationCode %>
+        <%= activationCode %>
       </h2>
       <p>If you didn't sign up for Brain Boost, you can safely ignore this email.</p>
       <p>Thanks,<br />The Brain Boost Team</p>
     </div>
     <div class="email-footer">
       <p>If you have any questions, please dont hesitate to connect with us at <a
-          href="mailto:shahriarturag.st@gmail.com">shahriarturag.st@gmail.com/a></p>
+          href="mailto:shahriarturag.st@gmail.com">shahriarturag.st@gmail.com</a></p>
     </div>
   </div>
 
