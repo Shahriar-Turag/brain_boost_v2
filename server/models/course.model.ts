@@ -74,7 +74,6 @@ const commentSchema = new Schema<IComment>({
 //course data schema
 const courseDataSchema = new Schema<ICourseData>({
 	videoUrl: String,
-	videoThumbnail: Object,
 	title: String,
 	videoSection: String,
 	description: String,
@@ -103,11 +102,11 @@ const courseSchema = new Schema<ICourse>({
 	thumbnail: {
 		public_id: {
 			type: String,
-			required: [true, 'Please upload course thumbnail'],
+			// required: [true, 'Please upload course thumbnail'],
 		},
 		url: {
 			type: String,
-			required: [true, 'Please upload course thumbnail'],
+			// required: [true, 'Please upload course thumbnail'],
 		},
 	},
 	tags: {
