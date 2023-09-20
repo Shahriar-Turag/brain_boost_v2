@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { NextFunction, Response } from 'express';
 import CourseModel from '../models/course.model';
 import { CatchAsyncError } from '../middleware/catchAsyncErrors';
 
@@ -12,3 +12,13 @@ export const createCourse = CatchAsyncError(
 		});
 	}
 );
+
+//get all courses --only for admin
+export const getAllCoursesService = async (res: Response) => {
+	const courses = await CourseModel.find({}).sort({ createdAt: -1 });
+
+	res.status(201).json({
+		success: true,
+		courses,
+	});
+};

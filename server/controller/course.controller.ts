@@ -2,13 +2,14 @@ import { NextFunction, Request, Response } from 'express';
 import { CatchAsyncError } from '../middleware/catchAsyncErrors';
 import ErrorHandler from '../utils/ErrorHandler';
 import cloudinary from 'cloudinary';
-import { createCourse } from '../services/course.service';
+import { createCourse, getAllCoursesService } from '../services/course.service';
 import CourseModel from '../models/course.model';
 import { redis } from '../utils/redis';
 import mongoose from 'mongoose';
 import ejs from 'ejs';
 import path from 'path';
 import sendMail from '../utils/sendMail';
+import NotificationModel from '../models/notification.model';
 
 //upload course
 export const uploadCourse = CatchAsyncError(
@@ -111,7 +112,7 @@ export const getAllCourses = CatchAsyncError(
 
 			if (isCacheExist) {
 				const courses = JSON.parse(isCacheExist);
-				console.log('hitting redis');
+
 				return res.status(200).json({
 					success: true,
 					courses,
@@ -120,7 +121,6 @@ export const getAllCourses = CatchAsyncError(
 				const courses = await CourseModel.find().select(
 					'-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links'
 				);
-				console.log('hitting database');
 
 				await redis.set('allCourses', JSON.stringify(courses));
 
@@ -204,7 +204,13 @@ export const addQuestion = CatchAsyncError(
 			//add question in the course content
 			courseContent.questions.push(newQuestion);
 
-			//save the course
+			await NotificationModel.create({
+				user: req.user?._id,
+				title: 'New Question Received',
+				message: `${req.user?.name} has asked a question on your course ${courseContent?.title} of ${course?.name}`,
+			});
+
+			//save the updated course
 			await course?.save();
 
 			res.status(200).json({
@@ -268,6 +274,11 @@ export const addAnswer = CatchAsyncError(
 
 			if (req.user?._id === question.user._id) {
 				//create a notification
+				await NotificationModel.create({
+					user: req.user?._id,
+					title: 'New Question Reply Received',
+					message: `${req.user?.name} has replied to your question on ${courseContent?.title} of ${course?.name}`,
+				});
 			} else {
 				const data = {
 					name: question.user.name,
@@ -318,7 +329,6 @@ export const addReview = CatchAsyncError(
 			const courseExist = userCourseList?.some(
 				(course: any) => course._id.toString() === courseId.toString()
 			);
-			console.log(courseId);
 
 			if (!courseExist) {
 				return next(
@@ -412,6 +422,45 @@ export const addReply = CatchAsyncError(
 			res.status(200).json({
 				success: true,
 				course,
+			});
+		} catch (err: any) {
+			return next(new ErrorHandler(err.message, 500));
+		}
+	}
+);
+
+//get all courses --only for admin
+
+export const getAllCourse = CatchAsyncError(
+	async (req: Request, res: Response, next: NextFunction) => {
+		try {
+			await getAllCoursesService(res);
+		} catch (err: any) {
+			return next(new ErrorHandler(err.message, 500));
+		}
+	}
+);
+
+//delete course --only for admin
+
+export const deleteCourse = CatchAsyncError(
+	async (req: Request, res: Response, next: NextFunction) => {
+		try {
+			const { id } = req.params;
+
+			const course = await CourseModel.findById(id);
+
+			if (!course) {
+				return next(new ErrorHandler('Course not found', 404));
+			}
+
+			await course.deleteOne({ id });
+
+			await redis.del(id);
+
+			res.status(200).json({
+				success: true,
+				message: 'Course deleted successfully',
 			});
 		} catch (err: any) {
 			return next(new ErrorHandler(err.message, 500));
