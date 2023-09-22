@@ -14,7 +14,10 @@ const Hero: React.FC<Props> = (props) => {
 					<span className='text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-pink-400 '>
 						Learning Experience
 					</span>{' '}
-					Better Instantly.
+					Better Instantly
+					<span className='text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-pink-400 '>
+						.
+					</span>
 				</h1>
 				<p className='max-w-[800px] mx-auto text-slate-400 800px:text-2xl text-md'>
 					Empower your academic journey with Brain Boost&apos;s
