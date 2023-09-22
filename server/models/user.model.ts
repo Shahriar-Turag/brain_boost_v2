@@ -51,6 +51,7 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
 		},
 		role: {
 			type: String,
+			// enum: ['admin', 'user'],
 			default: 'user',
 		},
 		isVerified: {
@@ -64,6 +65,8 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
 				},
 			},
 		],
+
+		// await UserModel.find().select('-payments)
 	},
 	{ timestamps: true }
 );
