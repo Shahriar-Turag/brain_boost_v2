@@ -46,8 +46,8 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
 		avatar: {
 			public_id: {
 				type: String,
-				url: String,
 			},
+			url: String,
 		},
 		role: {
 			type: String,

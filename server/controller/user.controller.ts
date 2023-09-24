@@ -408,11 +408,12 @@ export const updateProfilePicture = CatchAsyncError(
 		try {
 			const { avatar } = req.body as IUpdateProfilePictureBody;
 			const userId = req.user?._id;
-			const user = await userModel.findOne(userId);
+			const user = await userModel.findOne({ _id: userId });
+
 			if (avatar && user) {
 				//if user already has an avatar
 				if (user?.avatar?.public_id) {
-					//delete the olp avatar
+					//delete the old avatar
 					await cloudinary.v2.uploader.destroy(
 						user?.avatar?.public_id
 					);
@@ -423,6 +424,7 @@ export const updateProfilePicture = CatchAsyncError(
 							width: 150,
 						}
 					);
+
 					user.avatar = {
 						public_id: myCloud.public_id,
 						url: myCloud.secure_url,
@@ -435,6 +437,7 @@ export const updateProfilePicture = CatchAsyncError(
 							width: 150,
 						}
 					);
+
 					user.avatar = {
 						public_id: myCloud.public_id,
 						url: myCloud.secure_url,
