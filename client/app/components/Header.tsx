@@ -1,7 +1,7 @@
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
-import React, { FC, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import NavItem from '../utils/NavItem';
 import { ThemeSwitcher } from '../utils/ThemeSwitcher';
 import { HiOutlineMenuAlt3 } from 'react-icons/hi';
@@ -10,6 +10,14 @@ import CustomModal from '../utils/CustomModal';
 import Login from '../components/auth/Login';
 import SignUp from '../components/auth/SignUp';
 import Verification from './auth/Verification';
+import { useSelector } from 'react-redux';
+import avatarIcon from '../../public/avatar.png';
+import { useSession } from 'next-auth/react';
+import {
+	useLogoutQuery,
+	useSocialAuthMutation,
+} from '@/redux/features/auth/authApi';
+import toast from 'react-hot-toast';
 
 type Props = {
 	open: boolean;
@@ -22,6 +30,35 @@ type Props = {
 const Header: FC<Props> = ({ activeItem, setOpen, route, open, setRoute }) => {
 	const [active, setActive] = useState(false);
 	const [openSidebar, setOpenSidebar] = useState(false);
+	const { user } = useSelector((state: any) => state.auth);
+	const { data } = useSession();
+	const [socialAuth, { isSuccess, error }] = useSocialAuthMutation();
+
+	const [logout, setLogout] = useState(false);
+	const {} = useLogoutQuery(undefined, { skip: !logout ? true : false });
+
+	console.log(data);
+
+	useEffect(() => {
+		if (!user) {
+			if (data) {
+				socialAuth({
+					email: data?.user?.email,
+					name: data?.user?.name,
+					avatar: data?.user?.image,
+				});
+			}
+		}
+		if (data === null) {
+			if (isSuccess) {
+				toast.success('Logged in successfully');
+			}
+		}
+
+		if (data || user === null) {
+			setLogout(true);
+		}
+	}, [data, user]);
 
 	if (typeof window !== 'undefined') {
 		window.addEventListener('scroll', () => {
@@ -59,7 +96,7 @@ const Header: FC<Props> = ({ activeItem, setOpen, route, open, setRoute }) => {
 								/>
 							</Link>
 						</div>
-						<div className='flex items-center'>
+						<div className='flex items-center gap-4'>
 							<NavItem activeItem={activeItem} isMobile={false} />
 							<ThemeSwitcher />
 							{/* only for mobile */}
@@ -70,11 +107,27 @@ const Header: FC<Props> = ({ activeItem, setOpen, route, open, setRoute }) => {
 									onClick={() => setOpenSidebar(true)}
 								/>
 							</div>
-							<HiOutlineUserCircle
-								size='25'
-								className='hidden 800px:block cursor-pointer dark:text-white text-black'
-								onClick={() => setOpen(true)}
-							/>
+							{user ? (
+								<>
+									<Link href='/profile'>
+										<Image
+											src={
+												user?.avatar?.url || avatarIcon
+											}
+											alt='user image'
+											className='rounded-full cursor-pointer w-auto h-auto dark:border-emerald-500 border-red-400'
+											width={30}
+											height={30}
+										/>
+									</Link>
+								</>
+							) : (
+								<HiOutlineUserCircle
+									size='25'
+									className='hidden 800px:block cursor-pointer dark:text-white text-black'
+									onClick={() => setOpen(true)}
+								/>
+							)}
 						</div>
 					</div>
 				</div>
