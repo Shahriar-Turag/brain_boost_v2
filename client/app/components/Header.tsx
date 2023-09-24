@@ -18,6 +18,7 @@ import {
 	useSocialAuthMutation,
 } from '@/redux/features/auth/authApi';
 import toast from 'react-hot-toast';
+import dynamic from 'next/dynamic';
 
 type Props = {
 	open: boolean;
@@ -32,7 +33,7 @@ const Header: FC<Props> = ({ activeItem, setOpen, route, open, setRoute }) => {
 	const [openSidebar, setOpenSidebar] = useState(false);
 	const { user } = useSelector((state: any) => state.auth);
 	const { data } = useSession();
-	const [socialAuth, { isSuccess, error }] = useSocialAuthMutation();
+	const [socialAuth, { isSuccess, error, isError }] = useSocialAuthMutation();
 
 	const [logout, setLogout] = useState(false);
 	const {} = useLogoutQuery(undefined, { skip: !logout ? true : false });
@@ -40,22 +41,27 @@ const Header: FC<Props> = ({ activeItem, setOpen, route, open, setRoute }) => {
 	console.log(data);
 
 	useEffect(() => {
-		if (!user) {
-			if (data) {
-				socialAuth({
-					email: data?.user?.email,
-					name: data?.user?.name,
-					avatar: data?.user?.image,
-				});
-			}
-		}
-		if (data === null) {
-			if (isSuccess) {
-				toast.success('Logged in successfully');
-			}
+		// If there's no user and there's data from social auth
+		if (!user && data) {
+			socialAuth({
+				email: data?.user?.email,
+				name: data?.user?.name,
+				avatar: data?.user?.image,
+			});
 		}
 
-		if (data || user === null) {
+		// If the social auth was successful and there's no user in Redux store
+		if (!user && isSuccess) {
+			toast.success('Logged in successfully');
+		}
+
+		// If the social auth had an error
+		if (error) {
+			toast.error('Something went wrong');
+		}
+
+		// If data is null, set the logout state to true
+		if (data && user === null) {
 			setLogout(true);
 		}
 	}, [data, user]);
@@ -201,4 +207,4 @@ const Header: FC<Props> = ({ activeItem, setOpen, route, open, setRoute }) => {
 	);
 };
 
-export default Header;
+export default dynamic(() => Promise.resolve(Header), { ssr: false });

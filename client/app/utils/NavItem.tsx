@@ -1,3 +1,4 @@
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
@@ -81,4 +82,4 @@ const NavItem: React.FC<Props> = ({ activeItem, isMobile }) => {
 	);
 };
 
-export default NavItem;
+export default dynamic(() => Promise.resolve(NavItem), { ssr: false });

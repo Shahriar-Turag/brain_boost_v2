@@ -7,6 +7,8 @@ import { signOut } from 'next-auth/react';
 import { redirect } from 'next/navigation';
 import toast from 'react-hot-toast';
 import ProfileInfo from './ProfileInfo';
+import ChangePassword from './ChangePassword';
+import dynamic from 'next/dynamic';
 
 type Props = {
 	user: any;
@@ -51,12 +53,17 @@ const Profile: FC<Props> = ({ user }) => {
 				/>
 			</div>
 			{active === 1 && (
-				<div className='w-full h-full bg-transparent mt-[80px]'>
+				<div className='w-full h-[100vh] bg-transparent mt-[80px]'>
 					<ProfileInfo avatar={avatar} user={user} />
+				</div>
+			)}
+			{active === 2 && (
+				<div className='w-full h-full bg-transparent mt-[80px]'>
+					<ChangePassword />
 				</div>
 			)}
 		</div>
 	);
 };
 
-export default Profile;
+export default dynamic(() => Promise.resolve(Profile), { ssr: false });

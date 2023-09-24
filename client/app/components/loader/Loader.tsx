@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import './Loader.css';
+import dynamic from 'next/dynamic';
 
 type Props = {};
 
@@ -14,4 +15,4 @@ const Loader = (props: Props) => {
 	);
 };
 
-export default Loader;
+export default dynamic(() => Promise.resolve(Loader), { ssr: false });
